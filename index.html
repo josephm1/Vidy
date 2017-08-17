@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Safe Tube</title>
+	<meta name="theme-color" content="#5792CC">
+
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="blue">
+	<meta name="apple-mobile-web-app-title" content="Safe Tube">
+	<link rel="apple-touch-icon" href="icon.png">
+
+	<link rel="manifest" href="/manifest.json">
+
+	<link rel="stylesheet" href="materialize.min.css">
+	<link rel="stylesheet" type="text/css" href="main.css">
+</head>
+
+<body>
+
+	<h1>Safe Tube</h1>
+
+	<i id="refresh" class="material-icons md-48 refresh ">refresh</i>
+
+	<div class="container">
+
+		<!-- the upload video modal -->
+		<div id="fileuploadmodal" class="modal modal-fixed-footer">
+			<div class="modal-content fileuploadmodal">
+				<div class="row">
+					<form class="col s12">
+
+						<div class="row">
+							<div class="input-field col s12">
+								<input id="title" type="text" data-length="50" placeholder="Title">
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="input-field col s12">
+								<textarea id="description" class="materialize-textarea" data-length="300" placeholder="Description"></textarea>
+							</div>
+						</div>
+
+						<div class="file-field input-field">
+							<div class="btn yellow">
+								<span class="blue-text">Video</span>
+								<input id="upload-video" accept="video/mp4" type="file">
+							</div>
+							<div class="file-path-wrapper">
+								<input class="file-path validate" type="text">
+							</div>
+						</div>
+
+						<div id="uploadMessage">
+						</div>
+
+					</form>
+				</div>
+			</div>
+
+			<div class="modal-footer uploadfooter">
+				<a id="upload" class="modal-action waves-effect waves-yellow btn-flat yellow-text">Upload Video</a>
+				<a id="cancel" class="modal-action waves-effect waves-yellow btn-flat yellow-text">Cancel</a>
+			</div>
+		</div>
+
+		<!-- list of videos -->
+		<center>
+			<div id="videoCards">
+				<p>It takes a little while to load, good things come to those who wait.</p>
+			</div>
+		</center>
+
+	</div>
+
+	<!-- floating action button  -->
+	<a class="btn-floating btn-large waves-effect waves-light yellow fab" data-target="fileuploadmodal">
+		<i class="material-icons blue-text">file_upload</i>
+	</a>
+
+	<p class="credit">By Joseph Meagher</p>
+
+	<script src="jquery.min.js"></script>
+	<script src="materialize.min.js"></script>
+	<script src="main.js"></script>
+</body>
+
+</html>
