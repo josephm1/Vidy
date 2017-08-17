@@ -18,7 +18,7 @@ $(document).ready(function() {
     getMutableDataHandle("getVideoCards");
   });
 
-//initialises and authorises with the network
+  //initialises and authorises with the network
   var app = {
     name: "Safe Tube",
     id: "joe",
@@ -41,7 +41,7 @@ $(document).ready(function() {
     }, (err) => {
       console.error(err);
     });
-  });
+});
 
 function getMutableDataHandle(invokeFun, mdNameToSave, fileName) {
   var name = "safetube";
@@ -128,40 +128,43 @@ function uintToString(uintArray) {
 function getVideos(title, description, mdName, fileName) {
   window.safeMutableData.newPublic(auth, mdName, 54321)
     .then((mdHandle) => {
-        window.safeMutableData.emulateAs(mdHandle, 'NFS')
-          .then((nfsHandle) => {
-              window.safeNfs.fetch(nfsHandle, fileName)
-                .then((fileHandle) => {
-                    window.safeNfsFile.size(fileHandle)
-                      .then((size) => {
-                          console.log(size);
-                          if (size !== 0 &&
-                            size < 80000000) {
-                            window.safeNfs.open(nfsHandle, fileHandle, 4)
-                              .then((fileContentHandle) => {
-                                  window.safeNfsFile.metadata(fileHandle)
-                                    .then((fileMetaData) => {
-                                        console.log(fileMetaData);
-                                        window.safeNfsFile.read(fileContentHandle, 0, 0)
-                                          .then((data) => {
-                                              console.log(data);
-                                              var file = new File([data], fileName);
-                                              var url = window.URL.createObjectURL(file);
-                                              var fileReader = new FileReader();
-                                              fileReader.onload = function(event) {
-                                                  $("#videoCards").append('<div class="row"><div class="card-panel yellow videocard"><video controls><source src="' +
-                                              url + '" type="video/mp4"></video><h5 align="left" class="blue-text title">' +
-                                              title + '</h5><p align="left" class="blue-text description">' +
-                                              description + '</p></div></div>');
-                                              };
-                                              fileReader.readAsDataURL(file);
-                                          });
-                                    });
+      window.safeMutableData.emulateAs(mdHandle, 'NFS')
+        .then((nfsHandle) => {
+          window.safeNfs.fetch(nfsHandle, fileName)
+            .then((fileHandle) => {
+              window.safeNfsFile.size(fileHandle)
+                .then((size) => {
+                  console.log(size);
+                  if (size !== 0 &&
+                    size < 80000000) {
+                    window.safeNfs.open(nfsHandle, fileHandle, 4)
+                      .then((fileContentHandle) => {
+                        window.safeNfsFile.metadata(fileHandle)
+                          .then((fileMetaData) => {
+                            console.log(fileMetaData);
+                            window.safeNfsFile.read(fileContentHandle, 0, 0)
+                              .then((data) => {
+                                console.log(data);
+                                var file = new File([data], fileName);
+                                var url = window.URL.createObjectURL(file);
+                                var fileReader = new FileReader();
+                                fileReader.onload = function(event) {
+                                  $("#videoCards").append('<div class="row"><div class="card-panel yellow videocard"><video controls><source src="' +
+                                    url + '" type="video/mp4"></video><h5 align="left" class="blue-text title">' +
+                                    title + '</h5><p align="left" class="blue-text description">' +
+                                    description + '</p></div></div>');
+                                };
+                                fileReader.readAsDataURL(file);
+                                window.safeNfsFile.free(fileContentHandle);
+                                window.safeNfs.free(fileHandle);
+                                window.safeMutableData.free(mdHandle);
                               });
-                        }
+                          });
                       });
+                  }
                 });
-          });
+            });
+        });
     });
 }
 
@@ -253,6 +256,7 @@ function uploadVideo(content) {
                     .then(_ => {
                       window.safeNfs.free(nfsHandle);
                       window.safeMutableData.free(mdHandle);
+                      window.safeMutableData.free(safeTubeHandle);
                       getMutableDataHandle("uploadVideoCard", mdNameToSave, fileName);
                     });
                 });
