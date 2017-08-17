@@ -256,12 +256,10 @@ function uploadVideo(content) {
                     .then(_ => {
                       window.safeNfs.free(nfsHandle);
                       window.safeMutableData.free(mdHandle);
-                      window.safeMutableData.free(safeTubeHandle);
                       getMutableDataHandle("uploadVideoCard", mdNameToSave, fileName);
                     });
                 });
             });
-
         });
     });
 }
