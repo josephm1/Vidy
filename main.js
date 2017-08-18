@@ -68,48 +68,59 @@ function getVideoCards() {
       window.safeMutableDataEntries.forEach(entriesHandle,
         (key, value) => {
 
-          var videoCardItems = JSON.parse(uintToString(value.buf));
-          var videoMdName = videoCardItems.videoMDHandle.data;
-
-          var title = videoCardItems.title
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-
-          var description = videoCardItems.description
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-
           if (
             parseInt(uintToString(key)) < time &&
             parseInt(uintToString(key)).toString().length === 13 &&
             uintToString(key).length === 13 &&
-            uintToString(key).substring(0, 4) == 1502 &&
-
-            title.length !== 0 &&
-            title.length < 51 &&
-            typeof title === "string" &&
-
-            description.length !== 0 &&
-            description.length < 300 &&
-            typeof description === "string" &&
-
-            videoCardItems.filename.length !== 0 &&
-            typeof videoCardItems.filename === "string" &&
-
-            videoMdName.length === 32 &&
-            typeof videoMdName === "object"
-
+            uintToString(key).substring(0, 4) == 1502
           ) {
+            var videoCardItems = JSON.parse(uintToString(value.buf));
+            var videoMdName = videoCardItems.videoMDHandle.data;
 
-            console.log('Key: ', uintToString(key));
-            console.log('Value: ', videoCardItems);
-            getVideos(title, description, videoMdName, videoCardItems.filename);
+            var title = videoCardItems.title
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#039;");
+
+            var description = videoCardItems.description
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#039;");
+
+            var keys = Object.keys(videoCardItems);
+            if (
+              keys.length === 4 &&
+              keys[0] === "title" &&
+              keys[1] === "description" &&
+              keys[2] === "videoMDHandle" &&
+              keys[3] === "filename" 
+            ){
+
+              if (
+                title.length !== 0 &&
+                title.length < 51 &&
+                typeof title === "string" &&
+
+                description.length !== 0 &&
+                description.length < 300 &&
+                typeof description === "string" &&
+
+                videoCardItems.filename.length !== 0 &&
+                typeof videoCardItems.filename === "string" &&
+
+                videoMdName.length === 32 &&
+                typeof videoMdName === "object"
+              ) {
+
+                console.log('Key: ', uintToString(key));
+                console.log('Value: ', videoCardItems);
+                getVideos(title, description, videoMdName, videoCardItems.filename);
+              }
+            }
           }
 
           window.scrollTo(0, document.body.scrollHeight);
