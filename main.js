@@ -59,74 +59,92 @@ function getMutableDataHandle(invokeFun, mdNameToSave, fileName) {
     });
 }
 
+function loading(on, place) {
+  if (place === "main") {
+    if (on === true) {
+      mainLoading.innerHTML = '<div class="preloader-wrapper big active"><div class="spinner-layer spinner-yellow-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div>';
+    } else {
+      mainLoading.innerHTML = '';
+    }
+  } else {
+    if (on === true) {
+      modalLoading.innerHTML = '<center><div class="preloader-wrapper big active"><div class="spinner-layer spinner-yellow-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></center>';
+    } else {
+      modalLoading.innerHTML = '';
+    }
+  }
+}
+
 function getVideoCards() {
   window.safeMutableData.getEntries(safeTubeHandle)
     .then((entriesHandle) => {
       videoCards.innerHTML = "";
+      loading(true, "main");
       var date = new Date();
       var time = date.getTime();
       window.safeMutableDataEntries.forEach(entriesHandle,
-        (key, value) => {
+          (key, value) => {
 
-          if (
-            parseInt(uintToString(key)) < time &&
-            parseInt(uintToString(key)).toString().length === 13 &&
-            uintToString(key).length === 13 &&
-            uintToString(key).substring(0, 4) == 1502
-          ) {
-            var videoCardItems = JSON.parse(uintToString(value.buf));
-            var videoMdName = videoCardItems.videoMDHandle.data;
-
-            var title = videoCardItems.title
-              .replace(/&/g, "&amp;")
-              .replace(/</g, "&lt;")
-              .replace(/>/g, "&gt;")
-              .replace(/"/g, "&quot;")
-              .replace(/'/g, "&#039;");
-
-            var description = videoCardItems.description
-              .replace(/&/g, "&amp;")
-              .replace(/</g, "&lt;")
-              .replace(/>/g, "&gt;")
-              .replace(/"/g, "&quot;")
-              .replace(/'/g, "&#039;");
-
-            var keys = Object.keys(videoCardItems);
             if (
-              keys.length === 4 &&
-              keys[0] === "title" &&
-              keys[1] === "description" &&
-              keys[2] === "videoMDHandle" &&
-              keys[3] === "filename" 
-            ){
+              parseInt(uintToString(key)) < time &&
+              parseInt(uintToString(key)).toString().length === 13 &&
+              uintToString(key).length === 13 &&
+              uintToString(key).substring(0, 3) == 150
+            ) {
+              var videoCardItems = JSON.parse(uintToString(value.buf));
+              var videoMdName = videoCardItems.videoMDHandle.data;
 
+              var title = videoCardItems.title
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+
+              var description = videoCardItems.description
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+
+              var keys = Object.keys(videoCardItems);
               if (
-                title.length !== 0 &&
-                title.length < 51 &&
-                typeof title === "string" &&
-
-                description.length !== 0 &&
-                description.length < 300 &&
-                typeof description === "string" &&
-
-                videoCardItems.filename.length !== 0 &&
-                typeof videoCardItems.filename === "string" &&
-
-                videoMdName.length === 32 &&
-                typeof videoMdName === "object"
+                keys.length === 4 &&
+                keys[0] === "title" &&
+                keys[1] === "description" &&
+                keys[2] === "videoMDHandle" &&
+                keys[3] === "filename"
               ) {
 
-                console.log('Key: ', uintToString(key));
-                console.log('Value: ', videoCardItems);
-                getVideos(title, description, videoMdName, videoCardItems.filename);
+                if (
+                  title.length !== 0 &&
+                  title.length < 51 &&
+                  typeof title === "string" &&
+
+                  description.length !== 0 &&
+                  description.length < 300 &&
+                  typeof description === "string" &&
+
+                  videoCardItems.filename.length !== 0 &&
+                  typeof videoCardItems.filename === "string" &&
+
+                  //videoMdName.type === "Buffer" &&
+                  videoMdName.length === 32 &&
+                  typeof videoMdName === "object"
+                ) {
+
+                  console.log('Key: ', uintToString(key));
+                  console.log('Value: ', videoCardItems);
+                  getVideos(title, description, videoMdName, videoCardItems.filename);
+                }
               }
             }
-          }
-
-          window.scrollTo(0, document.body.scrollHeight);
+          })
+        .then(_ => {
+          window.safeMutableDataEntries.free(entriesHandle);
+          window.safeMutableData.free(safeTubeHandle);
         });
-      window.safeMutableDataEntries.free(entriesHandle);
-      window.safeMutableData.free(safeTubeHandle);
     }, (err) => {
       console.error(err);
     });
@@ -156,6 +174,7 @@ function getVideos(title, description, mdName, fileName) {
                             window.safeNfsFile.read(fileContentHandle, 0, 0)
                               .then((data) => {
                                 console.log(data);
+                                loading(false, "main");
                                 var file = new File([data], fileName);
                                 var url = window.URL.createObjectURL(file);
                                 var fileReader = new FileReader();
@@ -176,6 +195,8 @@ function getVideos(title, description, mdName, fileName) {
                 });
             });
         });
+    }, (err) => {
+      console.error(err);
     });
 }
 
@@ -261,17 +282,21 @@ function uploadVideo(content) {
             .then((nfsHandle) => {
               console.log("Uploading video now this can take some time...");
               uploadMessage.innerHTML = "Uploading video now this can take some time...";
+              loading(true, "modal");
               window.safeNfs.create(nfsHandle, content)
                 .then((fileHandle) => {
                   window.safeNfs.insert(nfsHandle, fileHandle, fileName)
                     .then(_ => {
                       window.safeNfs.free(nfsHandle);
                       window.safeMutableData.free(mdHandle);
+                      loading(false, "modal");
                       getMutableDataHandle("uploadVideoCard", mdNameToSave, fileName);
                     });
                 });
             });
         });
+    }, (err) => {
+      console.error(err);
     });
 }
 
@@ -298,5 +323,7 @@ function uploadVideoCard(mdName, fileName) {
           window.safeMutableData.free(safeTubeHandle);
           getMutableDataHandle("getVideoCards");
         });
+    }, (err) => {
+      console.error(err);
     });
 }
