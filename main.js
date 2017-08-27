@@ -20,7 +20,7 @@ $(document).ready(function() {
 
   //initialises and authorises with the network
   var app = {
-    name: "Safe Tube",
+    name: "Vidy",
     id: "joe",
     version: "1",
     vendor: "joe",
@@ -44,16 +44,15 @@ $(document).ready(function() {
 });
 
 function getMutableDataHandle(invokeFun, mdNameToSave, fileName) {
-  var name = "safetube";
+  var name = "vidy";
   window.safeCrypto.sha3Hash(auth, name)
     .then((hash) =>
       window.safeMutableData.newPublic(auth, hash, 54321))
     .then((mdHandle) => {
+      vidyHandle = mdHandle;
       if (invokeFun === "getVideoCards") {
-        safeTubeHandle = mdHandle;
         getVideoCards();
       } else if (invokeFun === "uploadVideoCard") {
-        safeTubeHandle = mdHandle;
         uploadVideoCard(mdNameToSave, fileName);
       }
     });
@@ -76,7 +75,7 @@ function loading(on, place) {
 }
 
 function getVideoCards() {
-  window.safeMutableData.getEntries(safeTubeHandle)
+  window.safeMutableData.getEntries(vidyHandle)
     .then((entriesHandle) => {
       videoCards.innerHTML = "";
       loading(true, "main");
@@ -88,9 +87,7 @@ function getVideoCards() {
             if (
               parseInt(uintToString(key)) < time &&
               parseInt(uintToString(key)).toString().length === 13 &&
-              uintToString(key).length === 13 &&
-              uintToString(key).substring(0, 3) == 150
-            ) {
+              uintToString(key).length === 13) {
               var videoCardItems = JSON.parse(uintToString(value.buf));
               var videoMdName = videoCardItems.videoMDHandle.data;
 
@@ -143,7 +140,7 @@ function getVideoCards() {
           })
         .then(_ => {
           window.safeMutableDataEntries.free(entriesHandle);
-          window.safeMutableData.free(safeTubeHandle);
+          window.safeMutableData.free(vidyHandle);
         });
     }, (err) => {
       console.error(err);
@@ -217,11 +214,11 @@ function checkForms() {
 
 function authorise() {
   if (authorised === false) {
-    window.safeMutableData.free(safeTubeHandle);
+    window.safeMutableData.free(vidyHandle);
     window.safeApp.free(auth);
     auth = "";
     var app = {
-      name: "Safe Tube",
+      name: "Vidy",
       id: "joe",
       version: "1",
       vendor: "joe",
@@ -314,13 +311,13 @@ function uploadVideoCard(mdName, fileName) {
       console.log("Your upload card: " + videoCard);
       window.safeMutableDataMutation.insert(mutationHandle, time.toString(), JSON.stringify(videoCard))
         .then(_ =>
-          window.safeMutableData.applyEntriesMutation(safeTubeHandle, mutationHandle))
+          window.safeMutableData.applyEntriesMutation(vidyHandle, mutationHandle))
         .then(_ => {
           uploadMessage.innerHTML = "";
           $('#fileuploadmodal').modal('close');
           Materialize.toast('Video has been uploaded to the network', 3000, 'rounded');
           window.safeMutableDataMutation.free(mutationHandle);
-          window.safeMutableData.free(safeTubeHandle);
+          window.safeMutableData.free(vidyHandle);
           getMutableDataHandle("getVideoCards");
         });
     }, (err) => {
