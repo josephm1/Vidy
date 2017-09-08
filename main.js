@@ -23,7 +23,7 @@ $(document).ready(function() {
     name: "Vidy",
     id: "joe",
     version: "1",
-    vendor: "joe",
+    vendor: "vidy.joe",
   };
 
 
@@ -81,6 +81,16 @@ function getVideoCards() {
       loading(true, "main");
       var date = new Date();
       var time = date.getTime();
+      var videoMaps = [];
+
+      function checkVideos(item) {
+        if (item == this) {
+          return false;
+        } else {
+          return true;
+        }
+      }
+
       window.safeMutableDataEntries.forEach(entriesHandle,
           (key, value) => {
 
@@ -111,8 +121,12 @@ function getVideoCards() {
                 keys[0] === "title" &&
                 keys[1] === "description" &&
                 keys[2] === "videoMDHandle" &&
-                keys[3] === "filename"
+                keys[3] === "filename" &&
+
+                safeurls.every(checkUrls, [url]) === true
               ) {
+
+                videoMaps.push(videoMdName);
 
                 if (
                   title.length !== 0 &&
@@ -126,10 +140,10 @@ function getVideoCards() {
                   videoCardItems.filename.length !== 0 &&
                   typeof videoCardItems.filename === "string" &&
 
-                  //videoMdName.type === "Buffer" &&
                   videoMdName.length === 32 &&
                   typeof videoMdName === "object"
                 ) {
+
 
                   console.log('Key: ', uintToString(key));
                   console.log('Value: ', videoCardItems);
@@ -139,6 +153,7 @@ function getVideoCards() {
             }
           })
         .then(_ => {
+          var videoMap = [];
           window.safeMutableDataEntries.free(entriesHandle);
           window.safeMutableData.free(vidyHandle);
         });
