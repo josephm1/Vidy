@@ -1,4 +1,5 @@
 //Intial function
+/*jshint esversion: 6 */
 "Use strict";
 
 $(document).ready(function() {

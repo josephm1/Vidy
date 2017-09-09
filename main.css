@@ -52,6 +52,13 @@ video {
   padding: 5px;
 }
 
+input:focus, textarea:focus {
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: yellow !important;
+  box-shadow: yellow !important;
+}
+
 /* fallback */
 
 @font-face {
