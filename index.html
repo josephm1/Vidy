@@ -21,73 +21,142 @@
 
 <body>
 
-	<h1>Vidy</h1>
+	<div class="navbar-fixed">
+		<nav>
+			<div class="nav-wrapper dark-primary-colour">
+				<a class="brand-logo center accent-text-colour">Vidy</a>
+				<ul id="nav-mobile" class="right">
+					<li><a class="dropdown" data-activates="more"><i class="material-icons accent-text-colour">more_vert</i></a></li>
+				</ul>
+			</div>
+		</nav>
+	</div>
 
-	<i id="refresh" class="material-icons md-48 refresh ">refresh</i>
 
-	<div class="container">
+	<main>
+		<div class="container">
+			<ul id="more" class="dropdown-content accent-colour">
+				<li><a id="refresh" class="primary-text-colour">Refresh</a></li>
+				<li><a id="feedback" class="primary-text-colour">Feedback</a></li>
+				<li><a id="about" class="primary-text-colour">About</a></li>
+				<li><a id="settings" class="primary-text-colour">Settings</a></li>
+			</ul>
 
-		<!-- the upload video modal -->
-		<div id="fileuploadmodal" class="modal modal-fixed-footer">
-			<div class="modal-content fileuploadmodal">
-				<div class="row">
-					<form class="col s12">
-
-						<div class="row">
-							<div class="input-field col s12">
-								<input id="title" type="text" data-length="50" placeholder="Title">
-							</div>
-						</div>
-
-						<div class="row">
-							<div class="input-field col s12">
-								<textarea id="description" class="materialize-textarea" data-length="300" placeholder="Description"></textarea>
-							</div>
-						</div>
-
-						<div class="file-field input-field">
-							<div class="btn yellow">
-								<span class="blue-text">Video</span>
-								<input id="upload-video" accept="video/mp4" type="file">
-							</div>
-							<div class="file-path-wrapper">
-								<input class="file-path validate" type="text">
-							</div>
-						</div>
-
-						<div id="uploadMessage">
-						</div>
-						<div id="modalLoading">
-						</div>
+			<!-- feedback modal -->
+			<div id="feedbackmodal" class="modal primary-colour">
+				<div class="modal-content">
+					<form>
+						<center>
+							<h5>Feedback</h5>
+						</center>
+						<p>Please send criticism, bugs or improvements!</p>
+						<textarea id="feedbackarea" class="materialize-textarea"></textarea>
+						<p>How would you rate this out of 10?</p>
+						<p class="range-field">
+							<input type="range" id="vidyscore" min="0" class="accent-text-colour" max="10" />
+						</p>
 					</form>
+				</div>
+				<div class="modal-footer dark-primary-colour">
+					<a id="submit-feedback" class="modal-action waves-effect waves-light btn-flat accent-text-colour">Submit</a>
 				</div>
 			</div>
 
-			<div class="modal-footer uploadfooter">
-				<a id="upload" class="modal-action waves-effect waves-yellow btn-flat yellow-text">Upload Video</a>
-				<a id="cancel" class="modal-action waves-effect waves-yellow btn-flat yellow-text">Cancel</a>
+			<!-- about modal -->
+			<div id="aboutmodal" class="modal primary-colour">
+				<div class="modal-content">
+					<h4 class="center">About</h4>
+					<p>
+						A public video directory for websites built on the SAFE Network with the ability for users to submit videos. The code is designed to readable and showcase some of the features of the SAFE API.
+						<br>
+						<br> vidy uses MaterializeCSS and jQuery under the MIT license.
+						<br>
+						<br> Part of Joseph's SAFE Project. Check out the topic for this project on the SAFE Network forums {here}.
+						<br>
+						<br> Check out some of my other projects: Demoy, Chaty, Listy and SAFE API Overview. If you like this feel free to send MaidSafecoins to this address: 1Dksk7aA6PPpttznZi73d8xzsw4ERHSTLc
+						<br>
+						<br>
+						<center>
+							By Joseph Meagher
+						</center>
+					</p>
+				</div>
 			</div>
+
+			<!-- settings modal -->
+			<div id="settingsmodal" class="modal primary-colour">
+				<div class="modal-content">
+					<center>
+						<h5>Settings</h5>
+						<p>
+							Nothing here yet!
+						</p>
+					</center>
+				</div>
+			</div>
+
+
+			<!-- the upload video modal -->
+			<div id="fileuploadmodal" class="modal modal-fixed-footer">
+				<div class="modal-content fileuploadmodal">
+					<div class="row">
+						<form class="col s12">
+
+							<div class="row">
+								<div class="input-field col s12">
+									<input id="title" type="text" data-length="50" placeholder="Title">
+								</div>
+							</div>
+
+							<div class="row">
+								<div class="input-field col s12">
+									<textarea id="description" class="materialize-textarea" data-length="300" placeholder="Description"></textarea>
+								</div>
+							</div>
+
+							<div class="file-field input-field">
+								<div class="btn accent-colour">
+									<span class="primary-text-colour">Video</span>
+									<input id="upload-video" accept="video/mp4" type="file">
+								</div>
+								<div class="file-path-wrapper">
+									<input class="file-path validate" type="text">
+								</div>
+							</div>
+
+							<div id="uploadMessage">
+							</div>
+							<div id="modalLoading">
+							</div>
+						</form>
+					</div>
+				</div>
+
+				<div class="modal-footer uploadfooter">
+					<a id="upload" class="modal-action waves-effect waves-light btn-flat accent-text-colour">Upload Video</a>
+				</div>
+			</div>
+
+
+
+			<!-- list of videos -->
+			<center>
+				<div id="mainLoading">
+				</div>
+				<div id="videoCards">
+					<p>It takes a little while to load, good things come to those who wait.</p>
+				</div>
+			</center>
+
 		</div>
 
-
-
-		<!-- list of videos -->
-		<center>
-			<div id="mainLoading">
-			</div>
-			<div id="videoCards">
-				<p>It takes a little while to load, good things come to those who wait.</p>
-			</div>
-		</center>
-
-	</div>
-
-	<!-- floating action button  -->
-	<a class="btn-floating btn-large waves-effect waves-light yellow fab" data-target="fileuploadmodal">
-		<i class="material-icons blue-text">file_upload</i>
+		<!-- floating action button  -->
+		<a class="btn-floating btn-large waves-effect waves-light accent-colour fab" data-target="fileuploadmodal">
+		<i class="material-icons primary-text-colour">file_upload</i>
 	</a>
 
-	<p class="credit">By Joseph Meagher</p>
+		<p class="credit">By Joseph Meagher</p>
+	</main>
 
 	<script src="jquery.min.js"></script>
 	<script src="materialize.min.js"></script>

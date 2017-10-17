@@ -1,19 +1,31 @@
 (async function() {
 	try {
-		$('#fileuploadmodal').modal({
-			dismissible: false
-		});
+		$('#fileuploadmodal').modal();
+		$('.dropdown').dropdown();
+		$('#feedbackmodal').modal();
+		$('#aboutmodal').modal();
+		$('#settingsmodal').modal();
 
+		$('#submit-feedback').click(function() {
+			sendFeedback();
+		});
+		$('#feedback').click(function() {
+			$('#feedbackmodal').modal('open');
+		});
+		$('#about').click(function() {
+			$('#aboutmodal').modal('open');
+		});
+		$('#settings').click(function() {
+			$('#settingsmodal').modal('open');
+		});
 		$('#upload').click(function() {
 			checkForms();
 		});
-
 		$('#cancel').click(function() {
 			$('#fileuploadmodal').modal('close');
 		});
-
 		$('#refresh').click(function() {
-			getMutableDataHandle('getVideoCards');
+			getVideoCards();
 		});
 
 		const app = {
@@ -42,7 +54,7 @@ async function getVideoCards() {
 
 		videoCards.innerHTML = '';
 		mainLoading.innerHTML =
-			'<div class="preloader-wrapper big active"><div class="spinner-layer spinner-yellow-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div>';
+			'<div class="preloader-wrapper big active"><div class="spinner-layer spinner-colour"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div>';
 		let time = new Date().getTime();
 		let videoMaps = [];
 
@@ -54,7 +66,7 @@ async function getVideoCards() {
 			}
 		}
 
-		await window.safeMutableDataEntries
+		window.safeMutableDataEntries
 			.forEach(entriesHandle, (key, value) => {
 				if (
 					parseInt(uintToString(key)) < time &&
@@ -131,31 +143,29 @@ async function getVideos(title, description, mdName, fileName) {
 
 		if (size !== 0 && size < 80000000) {
 			let fileContentHandle = window.safeNfs.open(nfsHandle, fileHandle, 4);
+			let fileMetaData = await window.safeNfsFile.metadata(fileHandle);
+			let data = await window.safeNfsFile.read(fileContentHandle, 0, 0);
 
-			window.safeNfsFile.metadata(fileHandle).then(fileMetaData => {
-				window.safeNfsFile.read(fileContentHandle, 0, 0).then(data => {
-					console.log(data);
-					mainLoading.innerHTML = '';
-					let file = new File([data], fileName);
-					let url = window.URL.createObjectURL(file);
-					let fileReader = new FileReader();
-					fileReader.onload = function(event) {
-						$('#videoCards').append(
-							'<div class="row"><div class="card-panel yellow videocard"><video controls><source src="' +
-								url +
-								'" type="video/mp4"></video><h5 align="left" class="blue-text title">' +
-								title +
-								'</h5><p align="left" class="blue-text description">' +
-								description +
-								'</p></div></div>'
-						);
-					};
-					fileReader.readAsDataURL(file);
-					window.safeNfsFile.free(fileContentHandle);
-					window.safeNfs.free(fileHandle);
-					window.safeMutableData.free(mdHandle);
-				});
-			});
+			console.log(data);
+			mainLoading.innerHTML = '';
+			let file = new File([data], fileName);
+			let url = window.URL.createObjectURL(file);
+			let fileReader = new FileReader();
+			fileReader.onload = function(event) {
+				$('#videoCards').append(
+					'<div class="row"><div class="card-panel accent-colour"><video controls><source src="' +
+						url +
+						'" type="video/mp4"></video><h5 align="left" class="primary-text-colour">' +
+						title +
+						'</h5><p align="left" class="primary-text-colour">' +
+						description +
+						'</p></div></div>'
+				);
+			};
+			fileReader.readAsDataURL(file);
+			window.safeNfsFile.free(fileContentHandle);
+			window.safeNfs.free(fileHandle);
+			window.safeMutableData.free(mdHandle);
 		}
 	} catch (err) {
 		console.log(err);
@@ -208,22 +218,39 @@ async function authorise() {
 	}
 }
 
+//old
+
+// function blobtobuffer() {
+// 	let video = document.getElementById('upload-video');
+// 	let reader = new FileReader();
+// 	reader.readAsArrayBuffer(video.files[0]);
+// 	reader.onload = function(event) {
+// 		let content = new Buffer(event.target.result.byteLength);
+// 		let view = new Uint8Array(event.target.result);
+// 		for (let i = 0; i < content.length; ++i) {
+// 			content[i] = view[i];
+// 		}
+// 		if (content.length < 80000000) {
+// 			uploadVideo(content);
+// 		} else {
+// 			Materialize.toast('Video is too big!', 3000, 'rounded');
+// 		}
+// 	};
+// }
+
 function blobtobuffer() {
 	let video = document.getElementById('upload-video');
-	let reader = new FileReader();
-	reader.readAsArrayBuffer(video.files[0]);
-	reader.onload = function(event) {
-		let content = new Buffer(event.target.result.byteLength);
-		let view = new Uint8Array(event.target.result);
-		for (let i = 0; i < content.length; ++i) {
-			content[i] = view[i];
-		}
-		if (content.length < 80000000) {
-			uploadVideo(content);
-		} else {
-			Materialize.toast('Video is too big!', 3000, 'rounded');
-		}
+	var arrayBuffer;
+	var fileReader = new FileReader();
+	fileReader.onload = function(event) {
+		arrayBuffer = event.target.result;
 	};
+	fileReader.readAsArrayBuffer(video.files[0]);
+	if (content.length < 80000000) {
+		uploadVideo(content);
+	} else {
+		Materialize.toast('Video is too big!', 3000, 'rounded');
+	}
 }
 
 async function uploadVideo(content) {
@@ -238,12 +265,12 @@ async function uploadVideo(content) {
 		console.log('Uploading video now this can take some time...');
 		uploadMessage.innerHTML = 'Uploading video now this can take some time...';
 		modalLoading.innerHTML =
-			'<center><div class="preloader-wrapper big active"><div class="spinner-layer spinner-yellow-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></center>';
+			'<center><div class="preloader-wrapper big active"><div class="spinner-layer spinner-colour"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></center>';
 
-		await window.safeMutableData.quickSetup(mdHandle, null);
+		window.safeMutableData.quickSetup(mdHandle, null);
 		let nfsHandle = await window.safeMutableData.emulateAs(mdHandle, 'NFS');
 		let fileHandle = await window.safeNfs.create(nfsHandle, content);
-		await window.safeNfs.insert(nfsHandle, fileHandle, fileName);
+		window.safeNfs.insert(nfsHandle, fileHandle, fileName);
 		window.safeNfs.free(nfsHandle);
 		window.safeMutableData.free(mdHandle);
 
@@ -264,11 +291,11 @@ async function uploadVideoCard(mdName, fileName) {
 			filename: fileName
 		};
 
-		let chatyHash = await window.safeCrypto.sha3Hash(auth, 'vidy');
+		let vidyHash = await window.safeCrypto.sha3Hash(auth, 'vidy');
 		let vidyHandle = await window.safeMutableData.newPublic(auth, vidyHash, 54321);
 		let mutationHandle = await window.safeMutableData.newMutation(auth);
-		await window.safeMutableDataMutation.insert(mutationHandle, time.toString(), JSON.stringify(videoCard));
-		await window.safeMutableData.applyEntriesMutation(vidyHandle, mutationHandle);
+		window.safeMutableDataMutation.insert(mutationHandle, time.toString(), JSON.stringify(videoCard));
+		window.safeMutableData.applyEntriesMutation(vidyHandle, mutationHandle);
 
 		uploadMessage.innerHTML = '';
 		$('#fileuploadmodal').modal('close');
@@ -277,6 +304,25 @@ async function uploadVideoCard(mdName, fileName) {
 		window.safeMutableDataMutation.free(mutationHandle);
 		window.safeMutableData.free(vidyHandle);
 		getVideoCards();
+	} catch (err) {
+		console.log(err);
+	}
+}
+
+async function sendFeedback() {
+	try {
+		let time = new Date().getTime().toString();
+		let feedback = 'Vidy Feedback: ' + feedbackarea.value + '/ Score: ' + vidyscore.value.toString() + '/10';
+
+		let feedbackHash = await window.safeCrypto.sha3Hash(auth, 'feedback');
+		let feedbackHandle = await window.safeMutableData.newPublic(auth, feedbackHash, 54321);
+		let mutationHandle = await window.safeMutableData.newMutation(auth);
+		window.safeMutableDataMutation.insert(mutationHandle, time, feedback);
+		window.safeMutableData.applyEntriesMutation(feedbackHandle, mutationHandle);
+
+		Materialize.toast('Thanks for your feedback!', 3000, 'rounded');
+		window.safeMutableDataMutation.free(mutationHandle);
+		window.safeMutableData.free(feedbackHandle);
 	} catch (err) {
 		console.log(err);
 	}
