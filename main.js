@@ -6,8 +6,11 @@
 		$('#aboutmodal').modal();
 		$('#settingsmodal').modal();
 
-		$('#submit-feedback').click(function() {
-			sendFeedback();
+		$('#authorise').click(function() {
+			authorise();
+		});
+		$('#refresh').click(function() {
+			getVideoCards();
 		});
 		$('#feedback').click(function() {
 			$('#feedbackmodal').modal('open');
@@ -18,14 +21,15 @@
 		$('#settings').click(function() {
 			$('#settingsmodal').modal('open');
 		});
+
+		$('#submit-feedback').click(function() {
+			sendFeedback();
+		});
 		$('#upload').click(function() {
 			checkForms();
 		});
-		$('#cancel').click(function() {
-			$('#fileuploadmodal').modal('close');
-		});
-		$('#refresh').click(function() {
-			getVideoCards();
+		$('#edit-config').click(function() {
+			editConfig();
 		});
 
 		const app = {
@@ -39,10 +43,11 @@
 		auth = await window.safeApp.connect(appHandle);
 
 		Materialize.toast(' App Token: ' + auth, 3000, 'rounded');
-		authorised = false;
 		getVideoCards();
 	} catch (err) {
-		console.log(err);
+		console.error(err);
+	} finally {
+		authorised = false;
 	}
 })();
 
@@ -126,12 +131,8 @@ async function getVideoCards() {
 				window.safeMutableData.free(vidyHandle);
 			});
 	} catch (err) {
-		console.log(err);
+		console.error(err);
 	}
-}
-
-function uintToString(uintArray) {
-	return new TextDecoder('utf-8').decode(uintArray);
 }
 
 async function getVideos(title, description, mdName, fileName) {
@@ -168,27 +169,13 @@ async function getVideos(title, description, mdName, fileName) {
 			window.safeMutableData.free(mdHandle);
 		}
 	} catch (err) {
-		console.log(err);
-	}
-}
-
-function checkForms() {
-	if (
-		title.value.length !== 0 &&
-		title.value.length < 51 &&
-		description.value.length !== 0 &&
-		description.value.length < 301 &&
-		document.getElementById('upload-video').files[0] !== undefined
-	) {
-		authorise();
-	} else {
-		Materialize.toast("Make sure all fields are filled and don't exceed limits ", 3000, 'rounded');
+		console.error(err);
 	}
 }
 
 async function authorise() {
 	try {
-		if (authorised === false) {
+		if (authorised !== true) {
 			window.safeApp.free(auth);
 
 			auth = '';
@@ -209,12 +196,28 @@ async function authorise() {
 			auth = authorisedAppHandle;
 			authorised = true;
 			Materialize.toast('Authorised App Token: ' + auth, 3000, 'rounded');
-			blobtobuffer();
-		} else {
-			blobtobuffer();
+			getConfig();
+			return auth;
 		}
 	} catch (err) {
-		console.log(err);
+		console.error(err);
+	}
+}
+
+async function checkForms() {
+	if (authorised !== true) {
+		const auth = await authorise();
+	}
+	if (
+		title.value.length !== 0 &&
+		title.value.length < 51 &&
+		description.value.length !== 0 &&
+		description.value.length < 301 &&
+		document.getElementById('upload-video').files[0] !== undefined
+	) {
+		blobtobuffer();
+	} else {
+		Materialize.toast("Make sure all fields are filled and don't exceed limits ", 3000, 'rounded');
 	}
 }
 
@@ -277,7 +280,7 @@ async function uploadVideo(content) {
 		modalLoading.innerHTML = '';
 		uploadVideoCard(mdNameToSave, fileName);
 	} catch (err) {
-		console.log(err);
+		console.error(err);
 	}
 }
 
@@ -296,34 +299,113 @@ async function uploadVideoCard(mdName, fileName) {
 		let mutationHandle = await window.safeMutableData.newMutation(auth);
 		window.safeMutableDataMutation.insert(mutationHandle, time.toString(), JSON.stringify(videoCard));
 		window.safeMutableData.applyEntriesMutation(vidyHandle, mutationHandle);
-
+		window.safeMutableDataMutation.free(mutationHandle);
+		window.safeMutableData.free(vidyHandle);
+	} catch (err) {
+		console.error(err);
+	} finally {
 		uploadMessage.innerHTML = '';
 		$('#fileuploadmodal').modal('close');
 		Materialize.toast('Video has been uploaded to the network', 3000, 'rounded');
+		setTimeout(function() {
+			getVideoCards();
+		}, 2000);
+	}
+}
 
-		window.safeMutableDataMutation.free(mutationHandle);
-		window.safeMutableData.free(vidyHandle);
-		getVideoCards();
+async function getConfig() {
+	try {
+		let ownContainerHandle = await window.safeApp.getOwnContainer(auth);
+		try {
+			let value = await window.safeMutableData.get(ownContainerHandle, 'custom-colours');
+			let colours = JSON.parse(value.buf.toString());
+
+			document.documentElement.style.setProperty('--primaryColor', colours.primaryColor);
+			document.documentElement.style.setProperty('--accentColor', colours.accentColor);
+			document.documentElement.style.setProperty('--darkPrimaryColor', colours.darkPrimaryColor);
+		} catch (err) {
+			let colorsConfig = {
+				primaryColor: '#448aff',
+				accentColor: '#ffea00',
+				darkPrimaryColor: '#1565c0'
+			};
+
+			let mutationHandle = await window.safeMutableData.newMutation(auth);
+			window.safeMutableDataMutation.insert(mutationHandle, 'custom-colours', JSON.stringify(colorsConfig));
+			window.safeMutableData.applyEntriesMutation(ownContainerHandle, mutationHandle);
+			window.safeMutableDataMutation.free(mutationHandle);
+			window.safeMutableData.free(ownContainerHandle);
+		}
 	} catch (err) {
-		console.log(err);
+		console.error(err);
+	} finally {
+		getVideoCards();
+	}
+}
+
+async function editConfig() {
+	try {
+		if (authorised !== true) {
+			const auth = await authorise();
+		}
+
+		let primary = document.getElementById('user-primary-colour').value;
+		let dark = document.getElementById('user-dark-primary-colour').value;
+		let accent = document.getElementById('user-accent-colour').value;
+
+		let colorsConfig = {
+			primaryColor: primary,
+			accentColor: accent,
+			darkPrimaryColor: dark
+		};
+
+		let ownContainerHandle = await window.safeApp.getOwnContainer(auth);
+		let mutationHandle = await window.safeMutableData.newMutation(auth);
+		let value = await window.safeMutableData.get(ownContainerHandle, 'custom-colours');
+		window.safeMutableDataMutation.update(
+			mutationHandle,
+			'custom-colours',
+			JSON.stringify(colorsConfig),
+			value.version + 1
+		);
+		window.safeMutableData.applyEntriesMutation(ownContainerHandle, mutationHandle);
+		window.safeMutableDataMutation.free(mutationHandle);
+		window.safeMutableData.free(ownContainerHandle);
+
+		setTimeout(function() {
+			getConfig();
+		}, 1500);
+	} catch (err) {
+		console.error(err);
+	} finally {
+		$('#settingsmodal').modal('close');
 	}
 }
 
 async function sendFeedback() {
 	try {
+		if (authorised !== true) {
+			const auth = await authorise();
+		}
+
 		let time = new Date().getTime().toString();
 		let feedback = 'Vidy Feedback: ' + feedbackarea.value + '/ Score: ' + vidyscore.value.toString() + '/10';
 
-		let feedbackHash = await window.safeCrypto.sha3Hash(auth, 'feedback');
+		let feedbackHash = await window.safeCrypto.sha3Hash(auth, 'feedy');
 		let feedbackHandle = await window.safeMutableData.newPublic(auth, feedbackHash, 54321);
 		let mutationHandle = await window.safeMutableData.newMutation(auth);
 		window.safeMutableDataMutation.insert(mutationHandle, time, feedback);
 		window.safeMutableData.applyEntriesMutation(feedbackHandle, mutationHandle);
-
-		Materialize.toast('Thanks for your feedback!', 3000, 'rounded');
 		window.safeMutableDataMutation.free(mutationHandle);
 		window.safeMutableData.free(feedbackHandle);
 	} catch (err) {
-		console.log(err);
+		console.error(err);
+	} finally {
+		$('#feedbackmodal').modal('close');
+		Materialize.toast('Thanks for your feedback!', 3000, 'rounded');
 	}
+}
+
+function uintToString(uintArray) {
+	return new TextDecoder('utf-8').decode(uintArray);
 }
