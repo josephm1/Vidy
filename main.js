@@ -127,8 +127,7 @@ async function getVideoCards() {
               videoMdName.length === 32 &&
               typeof videoMdName === "object"
             ) {
-              // console.log('Key: ', uintToString(key));
-              console.log("Value: ", videoCardItems);
+              console.log(videoCardItems);
               getVideos(title, description, videoMdName, videoCardItems.filename);
             }
           }
@@ -144,22 +143,17 @@ async function getVideoCards() {
 
 async function getVideos(title, description, mdName, fileName) {
   try {
-    console.log("1");
     let mdHandle = await window.safeMutableData.newPublic(auth, mdName, 654321);
     let nfsHandle = await window.safeMutableData.emulateAs(mdHandle, "NFS");
     let fileHandle = await window.safeNfs.fetch(nfsHandle, fileName);
     let size = await window.safeNfsFile.size(fileHandle);
-    console.log(size);
 
     if (size !== 0 && size < 80000000) {
-      console.log("2");
       let fileContentHandle = await window.safeNfs.open(nfsHandle, fileHandle, 4);
-      await console.log(fileContentHandle.length);
       let fileMetaData = await window.safeNfsFile.metadata(fileHandle);
-      let data = await window.safeNfsFile.read(fileContentHandle);
+      let data = await window.safeNfsFile.read(fileContentHandle, 0, 0);
 
       await console.log(data);
-      console.log("3");
       mainLoading.innerHTML = "";
       let file = new File([data], fileName);
       let url = window.URL.createObjectURL(file);
@@ -238,19 +232,6 @@ async function checkForms() {
 
 function blobtobuffer() {
   let video = document.getElementById("upload-video");
-  // let fileReader = new FileReader();
-  // fileReader.onload = function(event) {
-  //   let fileBuffer = new Buffer(event.target.result);
-  //   window.fileContent = fileBuffer;
-  //   console.log(fileBuffer);
-  // };
-  // fileReader.readAsArrayBuffer(video.files[0]);
-  // if (fileContent.length < 80000000) {
-  //   uploadVideo(fileContent);
-  // } else {
-  //   Materialize.toast("Video is too big!", 3000, "rounded");
-  // }
-
   let fileReader = new FileReader();
   fileReader.onload = function() {
     fileContent = this.result;
@@ -258,22 +239,12 @@ function blobtobuffer() {
   };
 
   fileReader.readAsArrayBuffer(video.files[0]);
-
-  // console.log(fileReader.result);
-  // if (fileContent.byteLength < 80000000) {
-  //   uploadVideo(fileContent);
-  // } else {
-  //   Materialize.toast("Video is too big!", 3000, "rounded");
-  // }
 }
 
 async function uploadVideo(content) {
   try {
     if (content.byteLength < 80000000) {
-      console.log(content);
       let video = document.getElementById("upload-video");
-      // await fileReader.readAsArrayBuffer(video.files[0]);
-
       let mdHandle = await window.safeMutableData.newRandomPublic(auth, 654321);
       let mdData = await window.safeMutableData.getNameAndTag(mdHandle);
 
